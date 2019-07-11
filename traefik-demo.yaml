@@ -1,0 +1,58 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: react-app-test-deployment
+  labels:
+    k8s-app: traefik-ingress-lb
+spec:
+  selector:
+    matchLabels:
+      k8s-app: traefik-ingress-lb
+  template:
+    metadata:
+      labels:
+        k8s-app: traefik-ingress-lb
+        name: react-app-test-deployment
+    spec:
+      containers:
+      - name: react-app-test
+        image: felipefelix/hello-world:0197362378074b4928da9e2d9a4d0d2ca1d2b294.git
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 125m
+            memory: 250Mi
+          requests:
+            cpu: 125m
+            memory: 250Mi
+        ports:
+        - name: http
+          containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-app-test-service
+spec:
+  selector:
+    k8s-app: traefik-ingress-lb
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+    name: hello-world
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: react-app-test-ingress
+spec:
+  rules:
+  - host: react.felixlabs.xyz
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: react-app-test-service
+          servicePort: hello-world
